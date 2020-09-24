@@ -1,9 +1,12 @@
-import React, { useMemo, useState, useEffect } from "react";
-import styled from 'styled-components'
-import { useTable, useFilters, useGlobalFilter, useAsyncDebounce } from 'react-table'
-import matchSorter from 'match-sorter'
+import React, { useState, useEffect } from "react";
 import axios from 'axios';
+import matchSorter from 'match-sorter'
+import { useTable, useFilters, useGlobalFilter, useAsyncDebounce } from 'react-table'
+import styled from 'styled-components'
+
 import './App.css';
+
+const API_URL = "http://localhost:5000";
 
 const Styles = styled.div`
   padding: 1rem;
@@ -32,7 +35,7 @@ const Styles = styled.div`
       }
     }
   }
-`
+`;
 
 // Define a default UI for filtering
 function GlobalFilter({
@@ -42,7 +45,10 @@ function GlobalFilter({
 }) {
   const count = preGlobalFilteredRows.length
   const [value, setValue] = React.useState(globalFilter)
-  const onChange = setGlobalFilter(value || undefined)
+
+  const onChange = useAsyncDebounce(value => {
+    setGlobalFilter(value || undefined)
+  }, 200)
 
   return (
     <span>
@@ -271,7 +277,7 @@ function Table({ columns, data }) {
                 <th {...column.getHeaderProps()}>
                   {column.render('Header')}
                   {/* Render the columns filter UI */}
-
+                  <div>{column.canFilter ? column.render('Filter') : null}</div>
                 </th>
               ))}
             </tr>
@@ -366,17 +372,24 @@ function App() {
     []
   )
 
-  const [data, setData] = useState([]);
-  const [place, setPlace] = useState([]);
+  const [forecast, setForecast] = useState([]);
+  const [place, setPlace] = useState("");
+  const [coordinates, setCoordinates] = useState(null);
+
   // Using useEffect to call the API once mounted and set the data
   useEffect(() => {
     (async () => {
       try {
-        let res = await axios.get("https://www.metaweather.com/api/location/2487956");
-        setData(res.data.consolidated_weather);
-        setPlace(res.data.title);
+        let locationId = 2487956;
+        const url = `${API_URL}/api/weather/${locationId}`;
+
+        let { data } = await axios.get(url);
+
+        setForecast(data.payload.forecast);
+        setPlace(data.payload.title);
+        setCoordinates(data.payload.coordinates);
       } catch (e) {
-        console.log(e.response) // undefined
+        console.error("error fetching the data: ", e);
       }
     })();
   }, []);
@@ -384,7 +397,10 @@ function App() {
   return (
     <Styles>
       <p>Location: {place}</p>
-      <Table columns={columns} data={data} />
+      <p>
+        Coordinates: {coordinates ? `lat: ${coordinates[0]}, lng: ${coordinates[1]}` : "N/A"}
+      </p>
+      <Table columns={columns} data={forecast} />
     </Styles>
   )
 }

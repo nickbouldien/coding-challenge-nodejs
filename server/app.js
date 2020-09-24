@@ -1,9 +1,9 @@
+const cors = require('cors');
 const express = require('express')
 const fetch = require("node-fetch");
-const cors = require('cors');
 
 const port = 5000;
-var app = express();
+const app = express();
 
 app.use(cors());
 
@@ -20,7 +20,7 @@ app.get(`/api/weather/:locationId`, async (req, res, next) => {
 
   try {
     const r = await fetch(`https://www.metaweather.com/api/location/${location}`)
-    console.log("r: ", r);
+
     response.statusCode = r.status;
     const data = await r.json();
 
@@ -39,7 +39,6 @@ app.get(`/api/weather/:locationId`, async (req, res, next) => {
     }
   }
 
-  console.log("response: ", response);
   res.json(response);
 });
 
