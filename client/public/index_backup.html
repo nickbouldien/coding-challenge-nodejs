@@ -1,0 +1,64 @@
+
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Gate3 - Jr. Software Developer - Dojo Test</title>
+	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/dojo/1.10.4/dijit/themes/claro/claro.css" media="screen">
+	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/dojo/1.10.4/dojo/resources/dojo.css" />
+	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/dojo/1.10.4/dojox/grid/resources/claroGrid.css" />
+	<link rel="stylesheet" href="style.css" media="screen">
+</head>
+<body class="claro">
+<h1>Test Requirements</h1>
+<p>
+<br/><input type="checkbox" checked> Run this project locally using npm
+<br/><input type="checkbox"> Make sure the data grid displays correctly and there are no errors in the developer console
+<br/><input type="checkbox"> The data grid should display the following columns: First Name, Last Name, Nickname, Birth Date, Height, Weight, Total AA, Total AB, Total RBIs
+<br/><input type="checkbox"> The dataset provided has height information in INCHES please display it in FEET using a formatter
+<br/><input type="checkbox"> Make the Birth Date field editable using the dojo dijit.form.DateTextBox widget (we do not expect the data to be saved)
+<br/><input type="checkbox"> Highlight the row for those players who had more than 100 RBIs
+
+<br/><br/>
+Here is the data grid...
+<div id="grid"></div>
+</p>
+
+
+<!-- load dojo -->
+<script src="//ajax.googleapis.com/ajax/libs/dojo/1.10.4/dojo/dojo.js"></script>
+<script>
+	var grid, store, dataStore;
+	require([
+		"dojox/grid/DataGrid",
+		"dojo/store/Memory",
+		"dojo/data/ObjectStore",
+		"dojo/request",
+		"dojo/domReady!"
+	], function(DataGrid, Memory, ObjectStore, request){
+		request.get("data/all-batting.json", {
+			handleAs: "json"
+		}).then(function(data){
+			store = new Memory({ data: data.items });
+			dataStore = new ObjectStore({ objectStore: store });
+
+			grid = new DataGrid({
+				store: dataStore,
+				query: { id: "*" },
+				structure: [
+					{
+						defaultCell: { width: "84px" },
+						cells: [
+							{ name: "First Name", field: "first" }
+							{ name: "Last Name", field: "last" }
+						]
+					}
+				]
+			}, "grid");
+
+			grid.startup();
+		});
+	});
+</script>
+</body>
+</html>
